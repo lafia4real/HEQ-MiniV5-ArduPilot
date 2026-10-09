@@ -1,0 +1,57 @@
+# Hardware definition for the HEQ MiniV5 flight controller.
+#
+# The hardware is derived from FMUv5 but has no IOMCU. The overrides below
+# are ported from the hwdef.dat embedded in the known-working HEQ MiniV5
+# Copter 4.5.4 firmware.
+
+include ../fmuv5/hwdef.dat
+
+# Do not embed or overwrite a bootloader. QGC still uploads this application
+# through the existing board-ID 50 bootloader inherited from FMUv5.
+define AP_BOOTLOADER_FLASHING_ENABLED 0
+
+# Match the timer selection used by the working firmware and leave TIM2 free.
+STM32_ST_USE_TIMER 5
+
+# Sensor power enable is active-low on this board.
+undef PE3
+PE3 VDD_3V3_SENSORS_EN OUTPUT LOW
+
+# Keep the FMUv5 serial numbering. USART6 TX is available on PG14.
+SERIAL_ORDER OTG1 USART2 USART3 USART1 UART4 USART6 UART7 OTG2
+PG14 USART6_TX USART6 NODMA
+
+# The eight FMU timer channels are the main outputs; UART8 is not connected
+# to an IOMCU on this board.
+undef IOMCU_UART
+undef UART8_TX
+undef UART8_RX
+undef AP_FEATURE_SBUS_OUT
+
+# These FMUv5 capture inputs are not connected on the HEQ MiniV5.
+undef PA5
+undef PB3
+undef PB11
+undef FMU_CAP1
+undef FMU_CAP2
+undef FMU_CAP3
+
+# RC input is on the PPM input pin, not USART6 RX.
+undef PG9
+undef USART6_RX
+PI5 TIM8_CH1 TIM8 RCININT PULLDOWN LOW
+
+# Power-module scaling used by the board vendor's working firmware.
+undef HAL_BATT_VOLT_SCALE
+define HAL_BATT_VOLT_SCALE 18.000
+undef HAL_BATT_CURR_SCALE
+define HAL_BATT_CURR_SCALE 24.000
+
+# The external safety switch and its LED are connected directly to the FMU.
+PE12 LED_SAFETY OUTPUT
+PE10 SAFETY_IN INPUT PULLDOWN
+
+# The fitted FRAM is 16 KiB. ArduPilot 4.6's FMUv5 definition already enables
+# its two-pin board LED backend, replacing the old HAL_HAVE_PIXRACER_LED flag.
+undef HAL_STORAGE_SIZE
+define HAL_STORAGE_SIZE 16384
